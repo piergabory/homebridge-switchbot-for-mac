@@ -151,8 +151,8 @@ export class SwitchBotAccessory implements AccessoryPlugin {
       }
     }
 
-    this.switchService = new this.Service.Switch(this.name);
-    this.switchService.getCharacteristic(this.Characteristic.On)
+    this.switchService = new this.Service.WindowCovering(this.name);
+    this.switchService.getCharacteristic(this.Characteristic.CurrentPosition)
       .on(CharacteristicEventTypes.GET, this.getOn.bind(this))
       .on(CharacteristicEventTypes.SET, this.setOn.bind(this));
 
@@ -196,7 +196,7 @@ export class SwitchBotAccessory implements AccessoryPlugin {
     if (hasStateChanged) {
       this.log.info(`updateState: state changed, update UI (device ${humanState})`);
       this.state = newState;
-      this.switchService.updateCharacteristic(this.Characteristic.On, newState);
+      this.switchService.updateCharacteristic(this.Characteristic.TargetPosition, newState ? 100 : 0);
     } else {
       this.log.debug(`updateState: state not changed, ignoring (device ${humanState})`);
     }
@@ -207,7 +207,7 @@ export class SwitchBotAccessory implements AccessoryPlugin {
    * These are sent when HomeKit wants to know the current state of the accessory.
    */
   private getOn(callback: CharacteristicGetCallback) {
-    callback(null, this.state || false);
+    callback(null, (this.state || false) ? 100 : 0);
   }
    
   /**
@@ -215,7 +215,7 @@ export class SwitchBotAccessory implements AccessoryPlugin {
    * These are sent when the user changes the state of an accessory.
    */
   private async setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
-    const newState = value as boolean;
+    const newState = (value as int) != 0;
     const humanState = newState ? 'on' : 'off';
     this.log.info(`Turning ${humanState}...`);
 
